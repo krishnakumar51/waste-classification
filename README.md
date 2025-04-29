@@ -23,9 +23,6 @@ A real-time waste classification system leveraging deep learning for efficient a
 
 ---
 
-
----
-
 ## ⚙️ Configuration
 
 - All system parameters are defined in `settings.py`:
