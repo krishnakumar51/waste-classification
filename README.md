@@ -78,17 +78,6 @@ A real-time waste classification system leveraging deep learning for efficient a
 
 ---
 
-## ✅ Testing & Deployment
-
-- `test.py` handles unit testing and debugging.
-- Documentation includes:
-  - Setup instructions
-  - API endpoints (if any)
-  - Common troubleshooting steps
-- Deploy prototype and iterate based on feedback.
-
----
-
 ## 📦 Setup Instructions
 
 ```bash
