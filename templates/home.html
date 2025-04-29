@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+  <br>
+  <!-- Loading Animation: Rocket -->
+  <div id="loading" style="display: none; text-align: center; margin-bottom: 20px;">
+    <img src="{{ url_for('static', filename='images/rocket.gif') }}" alt="Loading..." style="max-width: 100px;">
+  </div>
+  
+  <!-- Row 1: Waste Classification & About -->
+  <div class="row">
+    <div class="col-md-6 classy_frame" style="padding-top: 0%;">
+      <center><h3 style="text-transform: capitalize;">Classify Your Waste Material</h3></center>
+      <img id="preview" src="{{ url_for('static', filename='images/reuse.png') }}" height="400px" width="100%" title="client pic">
+      
+      <center>
+        <br>
+        <div class="image-upload">
+          <p style="color:wheat;" id="upload-web">Click the image upload icon below to upload an image.</p>
+          <p style="color:wheat;" id="upload-mobile">Click the camera icon below to capture an image.</p>
+          
+          <label for="file">
+              <img id="upload-web" src="{{ url_for('static', filename='images/upload.png') }}"/>
+              <img id="upload-mobile" src="{{ url_for('static', filename='images/camera.png') }}"/>
+          </label>
+          <input type="file" name="file" id="file" onchange="previewImage()">
+        </div>
+
+        <br>
+        <button class="classify-button" onclick="classifyWaste()">Classify your waste material</button>
+      </center>
+      <br>
+    </div>
+
+    <div class="col-md-6 classy_frame" style="padding-top: 0%;" id="about">
+      <center><h3 style="text-transform: capitalize;">About</h3></center>
+      <h4>
+        The world generates at least 3.5 million tons of waste per day and this number is still increasing day by day,
+        that's why we need to be aware about waste.<br><br>
+        This app helps you classify your waste into 9 different categories.
+        The recycling process of these waste materials is very hard, and it's challenging to classify them
+        at recycling factories.<br><br>
+        But what if everyone made 9 trash bins for 9 different waste materials and put the waste in the 
+        correct bin? This would be much better for cleaners and recycling factories to classify 
+        and recycle the waste. Everyone should do this because around 70% of waste is not recycled
+        simply because it wasn't classified.
+        <br><br><br><br><br><br>
+      </h4>
+    </div>
+  </div>
+
+  <!-- Row 2: Live Video Classification -->
+  <div class="row" style="margin-top: 20px;">
+    <div class="col-md-12 classy_frame" style="padding-top: 0%;">
+      <center>
+        <!-- Button to toggle live video feed -->
+        <button class="classify-button" onclick="toggleLiveVideo()">Start Live Video Classification</button>
+      </center>
+      <br>
+      <!-- The video feed will appear here when toggled -->
+      <center>
+        <img id="live-video" src="" style="display: none; width: 80%; border: 2px solid #ccc;" />
+      </center>
+    </div>
+  </div>
+  
+</div>
+
+<script>
+  var imgData;
+  var loading = document.getElementById("loading");
+  var about = document.getElementById("about");
+
+  function previewImage(){
+    var file = document.getElementById("file").files;
+    if(file.length > 0){
+      var fileName = file[0].name;
+      var allowed_extensions = ["jpeg", "jpg", "png"];
+      var file_extension = fileName.split('.').pop().toLowerCase(); 
+
+      if(allowed_extensions.includes(file_extension)){
+        var imgObj = document.getElementById("preview");
+        var fileReader = new FileReader();
+
+        fileReader.onload = function(event){
+          document.getElementById("preview").setAttribute("src", event.target.result);
+          imgData = event.target.result;
+        };
+        fileReader.readAsDataURL(file[0]);
+      }
+      else {
+        document.getElementById("file").value = "";
+        document.getElementById("errorTitle").innerHTML = "Error - Only Image File Acceptable";
+        document.getElementById("errorMessage").innerHTML = "We only accept images with .jpeg, .jpg, or .png extensions.";
+        $("#errorPopup").modal("show");
+      }
+    }
+  }
+
+  function classifyWaste(){
+    var file = document.getElementById("file").files;
+    if(file.length > 0){
+      // Show the rocket animation during processing
+      loading.style.display = "block";
+      
+      var form_data = new FormData();
+      form_data.append("file", document.getElementById("file").files[0]);
+      $.ajax({
+        url: 'classifywaste', // point to server-side URL
+        dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function (data) {
+          var predicted_value = data["predicted_value"];
+          var details = data["details"];
+          // Update the about section with classification details
+          about.innerHTML = "<center><h3>Waste classified as <b style='background-color: #0b2438;'>" 
+              + predicted_value + "</b> material</h3></center><h4>"+ details +"</h4>";
+          // Hide the loading rocket animation when processing is complete
+          loading.style.display = "none";
+        }
+      });
+    }
+    else {
+      document.getElementById("errorTitle").innerHTML = "Error - Image not uploaded";
+      document.getElementById("errorMessage").innerHTML = "Please upload an image of your waste material.";
+      $("#errorPopup").modal("show");
+    }
+  }
+
+  // Toggle the live video feed
+  function toggleLiveVideo() {
+    var liveImg = document.getElementById("live-video");
+    if (liveImg.style.display === "none") {
+      liveImg.style.display = "block";
+      liveImg.src = "{{ url_for('live_video') }}";  // Route that streams video
+    } else {
+      liveImg.style.display = "none";
+      liveImg.src = "";
+    }
+  }
+</script>
+
+{% endblock %}
